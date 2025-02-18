@@ -1,6 +1,7 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "@/server/db";
 
@@ -42,8 +43,26 @@ export const authConfig = {
      *
      * @see https://next-auth.js.org/providers/github
      */
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: (credentials, req) => {
+        // 在这里添加验证逻辑，例如查询数据库
+        if (
+          credentials.username === "admin" &&
+          credentials.password === "password"
+        ) {
+          return { id: "1", name: "John Doe", username: credentials.username }; // 返回用户信息
+        }
+        return null; // 如果验证失败，返回 null
+      },
+    }),
   ],
   adapter: PrismaAdapter(db),
+  pages: {},
   callbacks: {
     session: ({ session, user }) => ({
       ...session,
